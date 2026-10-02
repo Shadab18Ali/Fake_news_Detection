@@ -1,0 +1,14 @@
+# Dataset (download separately, see README) and trained models
+data/*.csv
+*.csv
+models/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
