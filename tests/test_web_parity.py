@@ -23,6 +23,7 @@ EDGE_CASES = [
     "Officials said [Photo: AP] see https://example.com/a?b=1 or www.x.org <b>now</b>!",
     "COVID19 case 2nd wave in 2017: the ministry said ¾ of them, ٣ times",
     "Café naïve Zürich straße ÉLITES Ελλάδα under_score It's SHOCKING!!!\n\nShare   now",
+    "Officials [aside\rcut] said <b\u2028x> data [y\u2029z] showed",  # "." spans \r, \u2028, \u2029 in Python
     "a I be to of",  # only stop words and 1-letter tokens
     "",
 ]
@@ -38,6 +39,14 @@ def _corpus(seed=0, n=60):
     return texts, labels
 
 
+def _node(script, *args, stdin=""):
+    out = subprocess.run(
+        ["node", "--input-type=module", "-e", script, *map(str, args)],
+        input=stdin, capture_output=True, text=True, check=True,
+    )
+    return json.loads(out.stdout)
+
+
 def _run_node(model_path, texts):
     script = f"""
         import fs from "node:fs";
@@ -49,11 +58,7 @@ def _run_node(model_path, texts):
             return {{ cleaned: cleanText(t), p: r ? r.probabilityReal : null }};
         }})));
     """
-    out = subprocess.run(
-        ["node", "--input-type=module", "-e", script, str(model_path)],
-        input=json.dumps(texts), capture_output=True, text=True, check=True,
-    )
-    return json.loads(out.stdout)
+    return _node(script, model_path, stdin=json.dumps(texts))
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is not installed")
@@ -75,6 +80,28 @@ def test_browser_classifier_matches_sklearn(tmp_path):
             assert result["p"] is None, text
         else:
             assert result["p"] == pytest.approx(pipeline.predict_proba([text])[0][1], abs=1e-3), text
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is not installed")
+def test_browser_rejects_malformed_models():
+    texts, labels = _corpus()
+    good = export_pipeline(build_models(["lr"])["lr"].fit(texts, labels))
+    bad = [
+        {**good, "idf": good["idf"][:-1]},
+        {**good, "coef": good["coef"][:-1] + [None]},
+        {**good, "intercept": "x"},
+        {**good, "vocabulary": []},
+        {k: v for k, v in good.items() if k != "stop_words"},
+        None,
+    ]
+    script = f"""
+        import fs from "node:fs";
+        import {{ loadModel }} from {json.dumps(CLASSIFIER_JS.as_uri())};
+        console.log(JSON.stringify(JSON.parse(fs.readFileSync(0, "utf8")).map((m) => {{
+            try {{ loadModel(m); return "ok"; }} catch (e) {{ return "error"; }}
+        }})));
+    """
+    assert _node(script, stdin=json.dumps([good] + bad)) == ["ok"] + ["error"] * len(bad)
 
 
 def test_export_contains_what_the_browser_needs():

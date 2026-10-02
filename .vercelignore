@@ -1,0 +1,6 @@
+# Only web/ is served. Keep tooling and training files out of the deployment.
+/web/package.json
+/data
+/tests
+/fake_news
+*.ipynb
