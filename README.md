@@ -12,6 +12,9 @@ fake_news/
   model.py                  dataset loading, model pipelines, training, saving/loading, prediction
   train.py                  CLI: train all models and save them
   predict.py                CLI: classify an article with the saved models
+  export.py                 CLI: train the model and export it to web/model.json for the web app
+web/                        static web app (deployed on Vercel), runs the model in the browser
+vercel.json                 Vercel config: serves web/ with no build step
 tests/                      pytest suite (runs without the dataset)
 data/                       put Fake.csv and True.csv here (not committed)
 ```
@@ -45,7 +48,33 @@ python -m fake_news.predict "The ministry said on Tuesday that exports rose 3% i
 cat article.txt | python -m fake_news.predict
 ```
 
-**Tests:** `python -m pytest`
+**Tests:** `python -m pytest` (the web parity test also needs [Node.js](https://nodejs.org))
+
+## Web app
+
+`web/` is a dependency-free static site: paste an article and it shows a verdict, a fake ↔ real meter and the
+words that pushed the score each way. The Logistic Regression model runs **in the browser**: `web/classifier.js`
+re-implements the text cleaning and TF-IDF scoring, and `tests/test_web_parity.py` checks it gives the same
+probabilities as scikit-learn. No server is needed, and pasted text never leaves the visitor's browser.
+
+### Publish the model
+
+The site needs `web/model.json`, which is generated from the dataset:
+
+```bash
+python -m fake_news.export            # ~1-2 MB with the default 50,000-word vocabulary
+git add web/model.json && git commit -m "Update web model" && git push
+```
+
+Until the file exists, the site shows a notice instead of the analyze button.
+
+### Deploy on Vercel
+
+With the repository connected to Vercel, every push deploys automatically: `vercel.json` tells Vercel to serve
+`web/` as-is (no install or build step), so no project settings need changing. Pushes to `main` go to
+production and other branches get preview URLs.
+
+To try it locally: `python -m http.server -d web 8000`, then open http://localhost:8000.
 
 ## How it works
 
