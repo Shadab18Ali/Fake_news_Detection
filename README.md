@@ -14,6 +14,7 @@ fake_news/
   predict.py                CLI: classify an article with the saved models
   export.py                 CLI: train the model and export it to web/model.json for the web app
 web/                        static web app (deployed on Vercel), runs the model in the browser
+api/factcheck.js            Vercel function: searches published fact-checks via Google's Fact Check Tools API
 vercel.json                 Vercel config: serves web/ with no build step
 tests/                      pytest suite (runs without the dataset)
 data/                       put Fake.csv and True.csv here (not committed)
@@ -56,7 +57,8 @@ cat article.txt | python -m fake_news.predict
 shows a prediction (likely real / likely fake / uncertain), the classifier's fake and real probabilities, the
 confidence, and the words that pushed the score each way.
 
-- **Private:** the Logistic Regression model runs in the browser. `web/classifier.js` re-implements the text cleaning
+- **Private:** the Logistic Regression model runs in the browser (only the optional fact-check search sends anything,
+  and then only the search phrase). `web/classifier.js` re-implements the text cleaning
   and TF-IDF scoring, and `tests/test_web_parity.py` checks it gives the same cleaned text and probabilities as
   scikit-learn. The page only downloads `model.json`; article text never leaves the browser, and the
   Content-Security-Policy in `vercel.json` only allows requests to the site itself.
@@ -69,6 +71,22 @@ confidence, and the words that pushed the score each way.
 - **SEO:** title, description, canonical URL, Open Graph/Twitter cards, `robots.txt` and `sitemap.xml`. The canonical
   URL is `https://fakenewsdetection-azure.vercel.app/`; update it in `web/index.html`, `web/robots.txt` and
   `web/sitemap.xml` if the site moves to another domain.
+
+### Fact-check search (optional, free)
+
+Below the analyzer, visitors can search fact-checks already published by organisations such as PolitiFact, Snopes
+and AFP. The page sends only the short search phrase (pre-filled from the article's first sentence, editable) to
+`api/factcheck.js`, which calls Google's free [Fact Check Tools API](https://developers.google.com/fact-check/tools/api)
+with a key kept on the server. It only finds claims a fact-checker has already reviewed.
+
+To turn it on:
+
+1. In the [Google Cloud console](https://console.cloud.google.com/), create a project, enable the
+   **Fact Check Tools API**, and create an API key under **APIs & Services → Credentials**. Restrict the key to the
+   Fact Check Tools API.
+2. In Vercel, open the project → **Settings → Environment Variables** and add `GOOGLE_FACT_CHECK_API_KEY` with the key
+   as its value, for Production and Preview.
+3. Redeploy. Until the key is set, the section says "Fact-check search isn't set up on this site yet."
 
 ### Publish the model
 

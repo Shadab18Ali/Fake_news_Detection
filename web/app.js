@@ -1,4 +1,5 @@
 import { loadModel, predict } from "./classifier.js";
+import { initFactCheck } from "./factcheck.js";
 
 const SUPPORTED_FORMAT = 1;
 const MODEL_TIMEOUT_MS = 30000;
@@ -70,6 +71,7 @@ const els = {
 };
 
 let model = null;
+const factCheck = initFactCheck(els.article);
 let analyzedText = null;
 let countsFrame = 0;
 
@@ -354,6 +356,7 @@ els.clear.addEventListener("click", () => {
   els.notes.replaceChildren();
   setMessage("");
   updateCounts();
+  factCheck.reset();
   els.announcer.textContent = "Cleared.";
   els.article.focus();
 });
@@ -362,6 +365,7 @@ document.querySelectorAll("[data-sample]").forEach((button) => {
   button.addEventListener("click", () => {
     els.article.value = SAMPLES[button.dataset.sample];
     updateCounts();
+    factCheck.syncSuggestion();
     setMessage("");
     if (model) analyze();
     else if (els.status.dataset.state === "error") setMessage("Example loaded, but the analysis model isn't available right now.", "info");
@@ -381,6 +385,7 @@ if (navigator.clipboard?.readText) {
       els.article.value = text;
       updateCounts();
       onInput();
+      factCheck.syncSuggestion();
       setMessage("");
       els.article.focus();
     } catch {
