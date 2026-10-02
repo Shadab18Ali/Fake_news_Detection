@@ -52,10 +52,23 @@ cat article.txt | python -m fake_news.predict
 
 ## Web app
 
-`web/` is a dependency-free static site: paste an article and it shows a verdict, a fake ↔ real meter and the
-words that pushed the score each way. The Logistic Regression model runs **in the browser**: `web/classifier.js`
-re-implements the text cleaning and TF-IDF scoring, and `tests/test_web_parity.py` checks it gives the same
-probabilities as scikit-learn. No server is needed, and pasted text never leaves the visitor's browser.
+`web/` is a dependency-free static site (plain HTML, CSS and ES modules, no build step). Paste an article and it
+shows a prediction (likely real / likely fake / uncertain), the classifier's fake and real probabilities, the
+confidence, and the words that pushed the score each way.
+
+- **Private:** the Logistic Regression model runs in the browser. `web/classifier.js` re-implements the text cleaning
+  and TF-IDF scoring, and `tests/test_web_parity.py` checks it gives the same cleaned text and probabilities as
+  scikit-learn. The page only downloads `model.json`; article text never leaves the browser, and the
+  Content-Security-Policy in `vercel.json` only allows requests to the site itself.
+- **Honest wording:** results describe writing patterns, never factual truth, and the page explains the model's
+  limitations.
+- **Robust:** input is validated (empty, under 10 words, over 100,000 characters), short or off-vocabulary texts get a
+  reliability note, and a missing or malformed model shows a plain-language error instead of breaking the page.
+- **Accessible:** semantic landmarks and headings, a skip link, labelled controls, visible focus, 44px touch targets,
+  screen-reader announcements for status and results, light/dark themes and reduced-motion support.
+- **SEO:** title, description, canonical URL, Open Graph/Twitter cards, `robots.txt` and `sitemap.xml`. The canonical
+  URL is `https://fakenewsdetection-azure.vercel.app/`; update it in `web/index.html`, `web/robots.txt` and
+  `web/sitemap.xml` if the site moves to another domain.
 
 ### Publish the model
 
@@ -66,7 +79,8 @@ python -m fake_news.export            # ~1-2 MB with the default 50,000-word voc
 git add web/model.json && git commit -m "Update web model" && git push
 ```
 
-Until the file exists, the site shows a notice instead of the analyze button.
+Until the file exists, the site shows "Unable to load the analysis model" and the browser console explains how to
+generate it.
 
 ### Deploy on Vercel
 

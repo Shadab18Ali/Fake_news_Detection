@@ -3,100 +3,232 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fake News Detector</title>
-  <meta name="description" content="Paste a news article and a machine-learning model estimates whether it reads like fake or real news. Runs entirely in your browser.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' stroke='white' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <title>Fake News Detector — Analyze News Writing Patterns</title>
+  <meta name="description" content="Analyze whether a news article's writing patterns resemble examples of real or fake reporting with private browser-based analysis.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://fakenewsdetection-azure.vercel.app/">
+  <meta name="theme-color" content="#f7f8fa" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Fake News Detector">
+  <meta property="og:title" content="Fake News Detector — Analyze News Writing Patterns">
+  <meta property="og:description" content="Analyze whether a news article's writing patterns resemble examples of real or fake reporting with private browser-based analysis.">
+  <meta property="og:url" content="https://fakenewsdetection-azure.vercel.app/">
+  <meta property="og:image" content="https://fakenewsdetection-azure.vercel.app/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Fake News Detector: analyze news writing patterns privately in your browser">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Fake News Detector — Analyze News Writing Patterns">
+  <meta name="twitter:description" content="Analyze whether a news article's writing patterns resemble examples of real or fake reporting with private browser-based analysis.">
+  <meta name="twitter:image" content="https://fakenewsdetection-azure.vercel.app/og-image.png">
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css">
+  <link rel="modulepreload" href="classifier.js">
+  <link rel="preload" href="model.json" as="fetch" crossorigin>
   <script type="module" src="app.js"></script>
 </head>
 <body>
+  <a class="skip-link" href="#analyzer">Skip to analyzer</a>
+
   <header class="site-header">
-    <div class="wrap header-inner">
-      <div class="brand">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32"><path d="M9 16.5l4.5 4.5L23 11.5"/></svg>
-        </span>
-        <span class="brand-name">Fake News Detector</span>
-      </div>
-      <a class="header-link" href="https://github.com/shadab18ali/fake_news_detection" target="_blank" rel="noopener"><span class="long">Source on </span>GitHub</a>
+    <div class="container header-inner">
+      <a class="brand" href="./" aria-label="Fake News Detector home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8"/><path d="M8 11h16M8 16h10M8 21h7"/><circle cx="22.5" cy="20.5" r="3.5"/><path d="M25 23l2.5 2.5"/></svg>
+        <span>Fake News Detector</span>
+      </a>
+      <a class="header-link" href="https://github.com/Shadab18Ali/Fake_news_Detection" target="_blank" rel="noopener noreferrer">
+        <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        <span class="header-link-label">GitHub</span><span class="visually-hidden"> (opens in a new tab)</span>
+      </a>
     </div>
   </header>
 
-  <main class="wrap">
-    <section class="intro">
-      <h1>Does this article read like fake news?</h1>
-      <p>Paste the text of a news article. A model trained on tens of thousands of labelled news articles scores how much its wording resembles fake or real reporting, and shows which words tipped the balance.</p>
+  <main id="main">
+    <section class="hero container" aria-labelledby="hero-title">
+      <h1 id="hero-title">Detect News Writing Patterns</h1>
+      <p class="hero-lead">Analyze an article and see whether its writing patterns resemble examples of real or fake reporting.</p>
+      <p class="pill">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg>
+        Runs entirely in your browser
+      </p>
     </section>
 
-    <section class="card" aria-labelledby="input-label">
-      <div class="card-head">
-        <label id="input-label" for="article">Article text</label>
-        <span class="word-count" id="word-count">0 words</span>
-      </div>
-      <textarea id="article" rows="11" placeholder="Paste the full article here: the more text, the more reliable the result." spellcheck="false"></textarea>
+    <div class="container stack">
+      <section class="card analyzer" id="analyzer" aria-labelledby="analyzer-title" tabindex="-1">
+        <div class="card-header">
+          <h2 id="analyzer-title">Analyze an article</h2>
+          <p class="model-status" id="model-status" role="status" data-state="loading">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="model-status-text">Loading analysis model…</span>
+          </p>
+        </div>
 
-      <div class="samples">
-        <span class="samples-label">Try a sample:</span>
-        <button type="button" class="chip-button" data-sample="sensational">Sensational post</button>
-        <button type="button" class="chip-button" data-sample="wire">Wire report</button>
-      </div>
+        <label class="field-label" for="article">Article text</label>
+        <textarea id="article" rows="12" spellcheck="false" autocomplete="off"
+          aria-describedby="input-counts input-message"
+          placeholder="Paste the full text of a news article here. Longer articles give more reliable results."></textarea>
 
-      <div class="actions">
-        <button type="button" class="btn btn-primary" id="analyze" disabled>
-          <span class="btn-label">Loading model…</span>
-        </button>
-        <button type="button" class="btn btn-ghost" id="clear">Clear</button>
-        <span class="shortcut" aria-hidden="true">or press <kbd>Ctrl</kbd> + <kbd>Enter</kbd></span>
-      </div>
+        <div class="field-meta">
+          <p class="counts" id="input-counts" aria-live="off">
+            <span id="word-count">0 words</span>
+            <span id="char-count">0 / 100,000 characters</span>
+          </p>
+          <p class="field-message" id="input-message" aria-live="polite"></p>
+        </div>
 
-      <div class="notice notice-error" id="model-error" hidden></div>
-    </section>
-
-    <section class="card result" id="result" hidden aria-live="polite">
-      <div class="verdict">
-        <div class="verdict-badge" id="verdict-badge">
-          <span class="verdict-icon" id="verdict-icon" aria-hidden="true"></span>
-          <div>
-            <div class="verdict-label" id="verdict-label"></div>
-            <div class="verdict-sub" id="verdict-sub"></div>
+        <div class="actions">
+          <div class="actions-secondary">
+            <button type="button" class="btn btn-secondary" id="paste" hidden>
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/></svg>
+              Paste
+            </button>
+            <button type="button" class="btn btn-secondary" id="clear">Clear</button>
+          </div>
+          <div class="actions-primary">
+            <span class="shortcut" aria-hidden="true"><kbd id="shortcut-mod">Ctrl</kbd> + <kbd>Enter</kbd></span>
+            <button type="button" class="btn btn-primary" id="analyze" disabled aria-keyshortcuts="Control+Enter Meta+Enter">Analyze article</button>
           </div>
         </div>
-      </div>
 
-      <div class="meter" aria-hidden="true">
-        <div class="meter-track"><div class="meter-marker" id="meter-marker"></div></div>
-        <div class="meter-scale"><span>Fake</span><span>Uncertain</span><span>Real</span></div>
-      </div>
-
-      <div class="notice notice-warn" id="short-warning" hidden></div>
-
-      <h2 class="section-title">Words that influenced the result</h2>
-      <div class="influence">
-        <div class="influence-col">
-          <h3><span class="dot dot-fake"></span>Pushed towards fake</h3>
-          <ul class="word-list" id="words-fake"></ul>
+        <div class="examples">
+          <span class="examples-label" id="examples-label">Try an example:</span>
+          <div class="examples-list" role="group" aria-labelledby="examples-label">
+            <button type="button" class="chip" data-sample="sensational">Sensational post</button>
+            <button type="button" class="chip" data-sample="wire">Wire report</button>
+          </div>
         </div>
-        <div class="influence-col">
-          <h3><span class="dot dot-real"></span>Pushed towards real</h3>
-          <ul class="word-list" id="words-real"></ul>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="about">
-      <h2 class="section-title">How it works</h2>
-      <ol class="steps">
-        <li><strong>Clean.</strong> The text is lowercased and stripped of links, HTML, numbers, punctuation and news-agency datelines.</li>
-        <li><strong>Weigh words.</strong> Each word is weighted by TF-IDF: how often it appears here versus how common it is across all articles.</li>
-        <li><strong>Score.</strong> A Logistic Regression model adds up learned per-word weights to estimate the probability that the article is real.</li>
-      </ol>
-      <dl class="stats" id="model-stats"></dl>
-      <p class="fine-print">Everything runs in your browser: the text you paste is never sent anywhere. The model judges writing style, not facts. It was trained on 2015–2017 political news from one dataset, so treat its answer as a hint and check claims against trusted sources.</p>
-    </section>
+      <p class="visually-hidden" id="announcer" aria-live="polite" aria-atomic="true"></p>
+
+      <section class="card result" id="result" aria-labelledby="result-title" hidden>
+        <div class="card-header">
+          <h2 id="result-title" tabindex="-1">Analysis result</h2>
+        </div>
+
+        <div class="result-grid">
+          <div class="verdict" id="verdict" data-kind="unsure">
+            <p class="eyebrow">Prediction</p>
+            <p class="verdict-label">
+              <span class="verdict-icon" aria-hidden="true">
+                <svg class="icon-real" viewBox="0 0 24 24"><path d="M6 12.5l4 4L18 8"/></svg>
+                <svg class="icon-fake" viewBox="0 0 24 24"><path d="M12 7v6M12 16.5v.5"/></svg>
+                <svg class="icon-unsure" viewBox="0 0 24 24"><path d="M9.5 9.5a2.5 2.5 0 114 2c-1 .7-1.5 1.2-1.5 2.5M12 16.5v.5"/></svg>
+              </span>
+              <span id="verdict-label"></span>
+            </p>
+            <p class="verdict-text" id="verdict-text"></p>
+            <div class="confidence" id="confidence">
+              <p class="eyebrow">Confidence</p>
+              <p class="confidence-value" id="confidence-value"></p>
+            </div>
+          </div>
+
+          <div class="probabilities" id="probabilities">
+            <p class="eyebrow">Probability by writing pattern</p>
+            <dl class="prob-list">
+              <div class="prob-row prob-fake">
+                <dt>Fake</dt>
+                <dd><span class="prob-bar" aria-hidden="true"><span class="prob-fill" id="fake-bar"></span></span><span class="prob-value" id="fake-value"></span></dd>
+              </div>
+              <div class="prob-row prob-real">
+                <dt>Real</dt>
+                <dd><span class="prob-bar" aria-hidden="true"><span class="prob-fill" id="real-bar"></span></span><span class="prob-value" id="real-value"></span></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <ul class="notes" id="result-notes"></ul>
+
+        <div class="result-footer">
+          <a class="btn btn-secondary" href="#influence" id="explain">Explain result</a>
+          <p class="result-disclaimer">Based on writing patterns only, not a fact-check. <a href="#limitations">Limitations</a></p>
+        </div>
+      </section>
+
+      <section class="card influence" id="influence" aria-labelledby="influence-title" tabindex="-1" hidden>
+        <div class="card-header">
+          <h2 id="influence-title">Word influence</h2>
+        </div>
+        <p class="section-lead">The words in this article that moved the prediction most, strongest first. Bar length shows each word's influence relative to the strongest one.</p>
+        <div class="influence-grid">
+          <div class="influence-col" data-kind="fake">
+            <h3><span class="swatch" aria-hidden="true"></span>Pushed toward fake</h3>
+            <ol class="word-list" id="words-fake"></ol>
+          </div>
+          <div class="influence-col" data-kind="real">
+            <h3><span class="swatch" aria-hidden="true"></span>Pushed toward real</h3>
+            <ol class="word-list" id="words-real"></ol>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="how-it-works" aria-labelledby="how-title">
+        <h2 id="how-title">How it works</h2>
+        <ol class="steps">
+          <li class="step">
+            <span class="step-number" aria-hidden="true">01</span>
+            <h3>Clean</h3>
+            <p>The text is lowercased and stripped of links, HTML, numbers, punctuation and news-agency datelines. Common English stop words are ignored.</p>
+          </li>
+          <li class="step">
+            <span class="step-number" aria-hidden="true">02</span>
+            <h3>Analyze</h3>
+            <p>TF-IDF weighs each word by how often it appears in the article and how distinctive it was across the training articles.</p>
+          </li>
+          <li class="step">
+            <span class="step-number" aria-hidden="true">03</span>
+            <h3>Predict</h3>
+            <p>A logistic regression classifier combines the learned weights of those words to estimate whether the writing resembles articles labelled real or fake.</p>
+          </li>
+        </ol>
+        <dl class="stats" id="model-stats" hidden></dl>
+      </section>
+
+      <div class="info-grid">
+        <section class="card info" id="privacy" aria-labelledby="privacy-title">
+          <svg class="info-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.4-3 8.2-7 9.5-4-1.3-7-5.1-7-9.5V6z"/><path d="M9 12l2 2 4-4"/></svg>
+          <h2 id="privacy-title">Private by design</h2>
+          <p>Your article is analyzed locally in your browser. Your text is not uploaded to a server: the page only downloads the model once, then all analysis happens on your device.</p>
+        </section>
+
+        <section class="card info" id="limitations" aria-labelledby="limitations-title">
+          <svg class="info-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.5"/></svg>
+          <h2 id="limitations-title">Important limitations</h2>
+          <p>This tool analyzes writing patterns, not factual accuracy. A high real score does not prove that an article is true, and a high fake score does not prove that it is false. Always verify important claims using trusted sources.</p>
+          <ul>
+            <li>Trained on English-language political and world news from roughly 2015–2018; other topics, eras and languages are less reliable.</li>
+            <li>Short texts give unreliable results.</li>
+            <li>It can be fooled by fake stories written in a neutral, wire-service style, and vice versa.</li>
+          </ul>
+        </section>
+      </div>
+    </div>
   </main>
 
   <footer class="site-footer">
-    <div class="wrap">Built with scikit-learn on the <a href="https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset" target="_blank" rel="noopener">Fake and Real News dataset</a>.</div>
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <p class="footer-name">Fake News Detector</p>
+        <p class="footer-tagline">Analyze writing patterns. Verify the facts.</p>
+      </div>
+      <nav aria-label="Footer">
+        <ul class="footer-links">
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="#limitations">Disclaimer</a></li>
+          <li><a href="https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset" target="_blank" rel="noopener noreferrer">Dataset<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+          <li><a href="https://github.com/Shadab18Ali/Fake_news_Detection" target="_blank" rel="noopener noreferrer">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        </ul>
+      </nav>
+    </div>
   </footer>
+
+  <noscript><p class="noscript">This analyzer needs JavaScript. Please enable it to analyze articles.</p></noscript>
 </body>
 </html>

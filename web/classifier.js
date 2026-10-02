@@ -4,9 +4,11 @@
 // that both give the same probabilities.
 
 const DATELINE = /^[^\n]{0,120}?\((?:Reuters|REUTERS)\)\s*[-–—]\s*/u;
-const BRACKETED = /\[.*?\]/gu;
+// Python's "." matches everything except "\n"; JavaScript's "." also stops at
+// "\r", "\u2028" and "\u2029", so spell out Python's behaviour with [^\n].
+const BRACKETED = /\[[^\n]*?\]/gu;
 const URL = /https?:\/\/\S+|www\.\S+/gu;
-const HTML_TAG = /<.*?>+/gu;
+const HTML_TAG = /<[^\n]*?>+/gu;
 // Python's str-pattern \w is Unicode letters, numbers and "_"; \d is Nd.
 const WORD_WITH_DIGIT = /[\p{L}\p{N}_]*\p{Nd}[\p{L}\p{N}_]*/gu;
 const NON_WORD = /[^\p{L}\p{N}]+/gu;
@@ -26,7 +28,23 @@ export function cleanText(text) {
     .trim();
 }
 
+function isNumberArray(value, length) {
+  return Array.isArray(value) && value.length === length && value.every(Number.isFinite);
+}
+
+/** Build the lookup structures for an exported model; throws if the JSON is malformed. */
 export function loadModel(json) {
+  const size = Array.isArray(json?.vocabulary) ? json.vocabulary.length : -1;
+  if (
+    size <= 0 ||
+    !json.vocabulary.every((term) => typeof term === "string") ||
+    !isNumberArray(json.idf, size) ||
+    !isNumberArray(json.coef, size) ||
+    !Number.isFinite(json.intercept) ||
+    !Array.isArray(json.stop_words)
+  ) {
+    throw new Error("Invalid model: expected vocabulary, idf and coef arrays of equal length and a numeric intercept");
+  }
   return {
     ...json,
     index: new Map(json.vocabulary.map((term, i) => [term, i])),
