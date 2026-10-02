@@ -53,7 +53,7 @@
       <p class="hero-lead">Analyze an article and see whether its writing patterns resemble examples of real or fake reporting.</p>
       <p class="pill">
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg>
-        Runs entirely in your browser
+        Writing analysis runs entirely in your browser
       </p>
     </section>
 
@@ -168,6 +168,26 @@
         </div>
       </section>
 
+      <section class="card factcheck" id="factcheck" aria-labelledby="factcheck-title">
+        <div class="card-header">
+          <h2 id="factcheck-title">Search published fact-checks</h2>
+        </div>
+        <p class="section-lead">See whether fact-checking organisations such as PolitiFact, Snopes or AFP have already reviewed a claim from this article. Only the search phrase below is sent to Google's Fact Check Tools API, never your full article.</p>
+        <form class="factcheck-form" id="fc-form" novalidate>
+          <label class="field-label" for="fc-query">Claim or headline to search</label>
+          <div class="factcheck-row">
+            <input type="search" id="fc-query" maxlength="300" autocomplete="off" spellcheck="false"
+              aria-describedby="fc-hint fc-message"
+              placeholder="e.g. a headline, name or key claim from the article">
+            <button type="submit" class="btn btn-primary" id="fc-submit">Search fact-checks</button>
+          </div>
+          <p class="field-hint" id="fc-hint">Filled in from your article's first sentence; edit it to a short phrase with the key names, places or numbers for better matches.</p>
+        </form>
+        <p class="field-message" id="fc-message" aria-live="polite"></p>
+        <ol class="fc-results" id="fc-results" aria-label="Fact-check results"></ol>
+        <p class="result-disclaimer fc-note" id="fc-note" hidden>Results are matched by search terms and may be about a similar but different claim. Read each review before drawing conclusions. No match doesn't mean a claim is true or false.</p>
+      </section>
+
       <section class="section" id="how-it-works" aria-labelledby="how-title">
         <h2 id="how-title">How it works</h2>
         <ol class="steps">
@@ -195,6 +215,7 @@
           <svg class="info-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.4-3 8.2-7 9.5-4-1.3-7-5.1-7-9.5V6z"/><path d="M9 12l2 2 4-4"/></svg>
           <h2 id="privacy-title">Private by design</h2>
           <p>Your article is analyzed locally in your browser. Your text is not uploaded to a server: the page only downloads the model once, then all analysis happens on your device.</p>
+          <p>Fact-check search is optional and only runs when you click it. It sends just the short search phrase you choose, through this site's server, to Google's Fact Check Tools API.</p>
         </section>
 
         <section class="card info" id="limitations" aria-labelledby="limitations-title">
@@ -220,6 +241,7 @@
       <nav aria-label="Footer">
         <ul class="footer-links">
           <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#factcheck">Fact-check search</a></li>
           <li><a href="#privacy">Privacy</a></li>
           <li><a href="#limitations">Disclaimer</a></li>
           <li><a href="https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset" target="_blank" rel="noopener noreferrer">Dataset<span class="visually-hidden"> (opens in a new tab)</span></a></li>
